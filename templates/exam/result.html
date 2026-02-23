@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Exam Result — MockMind{% endblock %}
+{% block content %}
+<div class="result-container">
+    <div class="result-header">
+        <div class="result-badge">
+            {% if exam.score / exam.total_marks >= 0.8 %}
+                <span class="badge-icon"></span>
+                <span class="badge-text">Excellent!</span>
+            {% elif exam.score / exam.total_marks >= 0.5 %}
+                <span class="badge-icon"></span>
+                <span class="badge-text">Good Job!</span>
+            {% else %}
+                <span class="badge-icon"></span>
+                <span class="badge-text">Keep Trying!</span>
+            {% endif %}
+        </div>
+        <h1>{{ subject.name }} — Grade {{ exam.grade }}</h1>
+        <div class="result-stats">
+            <div class="result-stat">
+                <span class="result-stat-value">{{ exam.score|round(1) }}/{{ exam.total_marks }}</span>
+                <span class="result-stat-label">Score</span>
+            </div>
+            <div class="result-stat">
+                <span class="result-stat-value">{{ ((exam.score / exam.total_marks) * 100)|round(1) }}%</span>
+                <span class="result-stat-label">Percentage</span>
+            </div>
+            <div class="result-stat result-xp">
+                <span class="result-stat-value">+{{ exam.xp_earned }} XP</span>
+                <span class="result-stat-label">XP Earned</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="answers-review">
+        <h2>Answer Review</h2>
+        {% for answer in answers %}
+            <div class="answer-card {% if answer.ai_score and answer.ai_score >= answer.question.marks * 0.8 %}answer-correct{% elif answer.ai_score and answer.ai_score > 0 %}answer-partial{% else %}answer-wrong{% endif %}">
+                <div class="answer-header">
+                    <span class="answer-type type-{{ answer.question.question_type }}">{{ answer.question.question_type.replace('_', ' ').title() }}</span>
+                    <span class="answer-score">{{ (answer.ai_score or 0)|round(1) }}/{{ answer.question.marks }}</span>
+                </div>
+                <p class="answer-question"><strong>Q:</strong> {{ answer.question.question_text }}</p>
+                <p class="answer-student"><strong>Your Answer:</strong> {{ answer.student_answer or 'No answer provided' }}</p>
+                {% if not answer.ai_score or answer.ai_score < answer.question.marks %}
+                    <p class="answer-correct-text"><strong>Correct Answer:</strong> {{ answer.question.correct_answer }}</p>
+                {% endif %}
+                {% if answer.ai_feedback %}
+                    <p class="answer-feedback"><strong>Feedback:</strong> {{ answer.ai_feedback }}</p>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="result-actions">
+        <a href="{{ url_for('exam.select') }}" class="btn btn-primary btn-lg">Take Another Exam</a>
+        <a href="{{ url_for('dashboard.index') }}" class="btn btn-secondary btn-lg">Back to Dashboard</a>
+    </div>
+</div>
+{% endblock %}

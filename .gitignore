@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# Flask
+instance/
+.env
+.flaskenv
+
+# SQLite Database
+*.db
+
+# IDE - PyCharm
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+.pytest_cache/
+htmlcov/
+.coverage
+requirements.txt
+schema.sql
+seed_questions.py
+README.md
+.env

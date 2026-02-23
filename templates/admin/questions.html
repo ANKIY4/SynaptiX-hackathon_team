@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Admin — Questions{% endblock %}
+{% block content %}
+<div class="admin-container">
+    <div class="admin-header">
+        <h1>Question Management</h1>
+        <a href="{{ url_for('admin.add_question') }}" class="btn btn-primary">+ Add Question</a>
+    </div>
+
+    <div class="question-table">
+        {% if questions %}
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Grade</th>
+                        <th>Subject</th>
+                        <th>Type</th>
+                        <th>Question</th>
+                        <th>Marks</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for q in questions %}
+                        <tr>
+                            <td>{{ q.id }}</td>
+                            <td>{{ q.grade }}</td>
+                            <td>{{ q.subject.name }}</td>
+                            <td><span class="badge type-{{ q.question_type }}">{{ q.question_type.replace('_', ' ').title() }}</span></td>
+                            <td class="td-question">{{ q.question_text[:80] }}{% if q.question_text|length > 80 %}...{% endif %}</td>
+                            <td>{{ q.marks }}</td>
+                            <td class="td-actions">
+                                <a href="{{ url_for('admin.edit_question', question_id=q.id) }}" class="btn btn-sm btn-secondary">Edit</a>
+                                <form method="POST" action="{{ url_for('admin.delete_question', question_id=q.id) }}" style="display:inline;">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this question?')">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="empty-state">
+                <p>No questions yet. Add your first question!</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — MockMind{% endblock %}
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h1>Welcome, {{ current_user.username }}!</h1>
+        <p>Track your progress and keep learning</p>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card stat-xp">
+            <div class="stat-icon">XP</div>
+            <div class="stat-info">
+                <span class="stat-value">{{ current_user.xp }}</span>
+                <span class="stat-label">Total XP</span>
+            </div>
+        </div>
+        <div class="stat-card stat-level">
+            <div class="stat-icon">Lv</div>
+            <div class="stat-info">
+                <span class="stat-value">Level {{ level }}</span>
+                <span class="stat-label">Current Level</span>
+            </div>
+            <div class="xp-bar">
+                <div class="xp-bar-fill" style="width: {{ xp_progress }}%"></div>
+                <span class="xp-bar-text">{{ xp_in_level }}/1000 XP</span>
+            </div>
+        </div>
+        <div class="stat-card stat-exams">
+            <div class="stat-icon">#</div>
+            <div class="stat-info">
+                <span class="stat-value">{{ total_exams }}</span>
+                <span class="stat-label">Exams Taken</span>
+            </div>
+        </div>
+        <div class="stat-card stat-avg">
+            <div class="stat-icon">%</div>
+            <div class="stat-info">
+                <span class="stat-value">{{ avg_score }}%</span>
+                <span class="stat-label">Avg Score</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-actions">
+        <a href="{{ url_for('exam.select') }}" class="btn btn-primary btn-lg">Take New Exam</a>
+        <a href="{{ url_for('leaderboard.index') }}" class="btn btn-secondary btn-lg">Leaderboard</a>
+    </div>
+
+    <div class="exam-history">
+        <h2>Exam History</h2>
+        {% if exams %}
+            <div class="history-list">
+                {% for exam in exams %}
+                    <a href="{{ url_for('exam.result', exam_id=exam.id) }}" class="history-item">
+                        <div class="history-info">
+                            <span class="history-subject">{{ exam.subject.name }}</span>
+                            <span class="history-meta">Grade {{ exam.grade }} • {{ exam.completed_at.strftime('%b %d, %Y') }}</span>
+                        </div>
+                        <div class="history-score">
+                            <span class="score-value">{{ exam.score|round(1) }}/{{ exam.total_marks }}</span>
+                            <span class="score-xp">+{{ exam.xp_earned }} XP</span>
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <p>No exams taken yet. Start your first exam now!</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

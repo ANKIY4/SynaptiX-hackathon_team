@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Select Exam — MockMind{% endblock %}
+{% block content %}
+<div class="select-container">
+    <div class="select-header">
+        <h1>Choose Your Exam</h1>
+        <p>Select a grade to see available subjects</p>
+    </div>
+
+    <div class="grade-grid" id="gradeGrid">
+        {% for grade in grades %}
+            <div class="grade-card" data-grade="{{ grade }}" onclick="selectGrade({{ grade }})">
+                <span class="grade-number">{{ grade }}</span>
+                <span class="grade-label">Grade {{ grade }}</span>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="subject-section" id="subjectSection" style="display: none;">
+        <h2 id="subjectTitle">Subjects for Grade <span id="selectedGrade"></span></h2>
+        <div class="subject-grid" id="subjectGrid"></div>
+        <button class="btn btn-secondary" onclick="backToGrades()">← Back to Grades</button>
+    </div>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script>
+    let currentGrade = null;
+
+    function selectGrade(grade) {
+        currentGrade = grade;
+        document.getElementById('gradeGrid').style.display = 'none';
+        document.getElementById('subjectSection').style.display = 'block';
+        document.getElementById('selectedGrade').textContent = grade;
+
+        fetch(`/exams/subjects/${grade}`)
+            .then(res => res.json())
+            .then(subjects => {
+                const grid = document.getElementById('subjectGrid');
+                grid.innerHTML = '';
+                if (subjects.length === 0) {
+                    grid.innerHTML = '<p class="empty-state">No subjects available for this grade yet.</p>';
+                    return;
+                }
+                subjects.forEach(s => {
+                    const card = document.createElement('a');
+                    card.href = `/exams/start/${grade}/${s.id}`;
+                    card.className = 'subject-card';
+                    card.innerHTML = `
+                        <span class="subject-icon">${s.icon}</span>
+                        <span class="subject-name">${s.name}</span>
+                    `;
+                    grid.appendChild(card);
+                });
+            });
+    }
+
+    function backToGrades() {
+        document.getElementById('gradeGrid').style.display = 'grid';
+        document.getElementById('subjectSection').style.display = 'none';
+    }
+</script>
+{% endblock %}

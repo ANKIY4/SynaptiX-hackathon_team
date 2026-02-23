@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Leaderboard — MockMind{% endblock %}
+{% block content %}
+<div class="leaderboard-container">
+    <div class="leaderboard-header">
+        <h1>Leaderboard</h1>
+        <p>Top students ranked by XP</p>
+    </div>
+
+    <div class="leaderboard-table" id="leaderboardTable">
+        {% if leaderboard %}
+            {% for entry in leaderboard %}
+                <div class="lb-row {% if loop.index <= 3 %}lb-top-{{ loop.index }}{% endif %}">
+                    <div class="lb-rank">
+                        {% if entry.rank == 1 %}#1
+                        {% elif entry.rank == 2 %}#2
+                        {% elif entry.rank == 3 %}#3
+                        {% else %}{{ entry.rank }}
+                        {% endif %}
+                    </div>
+                    <div class="lb-user">
+                        <span class="lb-username">{{ entry.username }}</span>
+                        <span class="lb-level">Level {{ entry.level }}</span>
+                    </div>
+                    <div class="lb-stats">
+                        <span class="lb-exams">{{ entry.exams_taken }} exams</span>
+                    </div>
+                    <div class="lb-xp">
+                        <span class="lb-xp-value">{{ entry.xp }}</span>
+                        <span class="lb-xp-label">XP</span>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <p>No students yet. Be the first to take an exam!</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/leaderboard.js') }}"></script>
+{% endblock %}
