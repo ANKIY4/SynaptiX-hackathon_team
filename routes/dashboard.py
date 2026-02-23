@@ -13,7 +13,9 @@ def index():
     total_exams = len(exams)
     avg_score = 0
     if total_exams > 0:
-        avg_score = sum(e.score for e in exams) / sum(e.total_marks for e in exams if e.total_marks > 0) * 100 if any(e.total_marks > 0 for e in exams) else 0
+        total_marks_sum = sum(e.total_marks for e in exams if e.total_marks > 0)
+        if total_marks_sum > 0:
+            avg_score = (sum(e.score for e in exams) / total_marks_sum) * 100
 
     # level calc: 1000 XP per level
     level = current_user.xp // 1000 + 1

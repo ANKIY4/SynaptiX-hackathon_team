@@ -99,7 +99,7 @@ def take(exam_id):
             'feedback': last_answered.ai_feedback
         }
 
-    subject = Subject.query.get(exam_obj.subject_id)
+    subject = db.session.get(Subject, exam_obj.subject_id)
     remaining_seconds = max(0, int((deadline - datetime.utcnow()).total_seconds()))
 
     return render_template('exam/take.html',
@@ -118,7 +118,8 @@ def submit_answer(exam_id):
         flash('Invalid submission.', 'danger')
         return redirect(url_for('exam.select'))
 
-    # Check timer    deadline = exam_obj.started_at + timedelta(minutes=Config.EXAM_DURATION_MINUTES)
+    # check timer
+    deadline = exam_obj.started_at + timedelta(minutes=Config.EXAM_DURATION_MINUTES)
     if datetime.utcnow() > deadline:
         return redirect(url_for('exam.finish', exam_id=exam_id))
 
@@ -132,17 +133,22 @@ def submit_answer(exam_id):
 
     answer.student_answer = student_ans
 
-    # grade with GPT-4.1-mini
-    try:
-        eval_result = _ai_evaluate(answer.question.question_text, student_ans)
-        if eval_result == 'correct':
-            answer.ai_score = float(answer.question.marks)
-            answer.ai_feedback = 'Correct!'
-        else:
-            answer.ai_score = 0
-            answer.ai_feedback = 'Incorrect'
-    except Exception:
-        _fallback_grade(answer, student_ans)
+    # don't grade empty answers
+    if not student_ans:
+        answer.ai_score = 0
+        answer.ai_feedback = 'No answer provided'
+    else:
+        # grade with GPT-4.1-mini
+        try:
+            eval_result = _ai_evaluate(answer.question.question_text, student_ans)
+            if eval_result == 'correct':
+                answer.ai_score = float(answer.question.marks)
+                answer.ai_feedback = 'Correct!'
+            else:
+                answer.ai_score = 0
+                answer.ai_feedback = 'Incorrect'
+        except Exception:
+            _fallback_grade(answer, student_ans)
 
     db.session.commit()
 
@@ -209,7 +215,7 @@ def _fallback_grade(answer, student_ans):
 def _ai_evaluate(question_text, student_answer):
     """Call OpenAI to evaluate the answer."""
     api_key = Config.OPENAI_API_KEY
-    if not api_key or api_key == 'YOUR_OPENAI_API_KEY_HERE':
+    if not api_key or api_key == '':
         raise ValueError('OpenAI API key not configured')
 
     resp = http_requests.post(
@@ -288,5 +294,5 @@ def result(exam_id):
         return redirect(url_for('exam.select'))
 
     answers = ExamAnswer.query.filter_by(exam_id=exam_id).all()
-    subject = Subject.query.get(exam_obj.subject_id)
+    subject = db.session.get(Subject, exam_obj.subject_id)
     return render_template('exam/result.html', exam=exam_obj, answers=answers, subject=subject)
