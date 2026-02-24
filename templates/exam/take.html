@@ -42,10 +42,10 @@
     <div class="feedback-card feedback-{{ last_feedback.eval }}">
         <div class="feedback-header">
             {% if last_feedback.eval == 'correct' %}
-                <span class="feedback-icon"></span>
+                <span class="feedback-icon">&#10003;</span>
                 <span class="feedback-status">Correct!</span>
             {% else %}
-                <span class="feedback-icon"></span>
+                <span class="feedback-icon">&#10007;</span>
                 <span class="feedback-status">Incorrect</span>
             {% endif %}
         </div>
@@ -57,7 +57,7 @@
     <!-- Anti-cheat warning overlay -->
     <div class="cheat-overlay" id="cheatOverlay" style="display:none;">
         <div class="cheat-modal">
-            <span class="cheat-icon">⚠️</span>
+            <span class="cheat-icon">WARNING</span>
             <h2>Tab Switch Detected!</h2>
             <p>Switching tabs is not allowed. Your question has been changed!</p>
             <p>Warning <span id="overlayWarningCount">1</span> of 3</p>
@@ -82,8 +82,10 @@
                 <input type="text" name="student_answer" class="form-input" placeholder="Type your answer (1-2 words)" autocomplete="off" autofocus required>
             {% elif question.type == 'short' %}
                 <textarea name="student_answer" class="form-textarea" rows="3" placeholder="Write a short answer (1-2 sentences)" autofocus required></textarea>
+                <span class="submit-hint">Press Ctrl+Enter to submit</span>
             {% else %}
                 <textarea name="student_answer" class="form-textarea form-textarea-lg" rows="6" placeholder="Write a detailed answer" autofocus required></textarea>
+                <span class="submit-hint">Press Ctrl+Enter to submit</span>
             {% endif %}
 
             <div class="exam-submit">
@@ -92,6 +94,7 @@
                 {% else %}
                     <button type="submit" class="btn btn-primary btn-lg">Submit Final Answer</button>
                 {% endif %}
+                <button type="button" class="btn btn-danger btn-lg" onclick="cancelExam()">Cancel Exam</button>
             </div>
         </form>
     </div>
@@ -125,6 +128,40 @@
 
     updateTimer();
     setInterval(updateTimer, 1000);
+
+    // Cancel exam manually
+    function cancelExam() {
+        if (!confirm('Are you sure you want to cancel this exam? You will receive 0 XP.')) return;
+        fetch(`/exams/cancel/{{ exam.id }}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token() }}' },
+            body: JSON.stringify({ reason: 'Manually cancelled by student' })
+        }).then(() => {
+            window.location.href = '/exams/cancelled/{{ exam.id }}';
+        }).catch(() => {
+            window.location.href = '/exams/cancelled/{{ exam.id }}';
+        });
+    }
+
+    // Ctrl+Enter to submit from textareas
+    const examForm = document.getElementById('examForm');
+    document.querySelectorAll('textarea[name="student_answer"]').forEach(function(ta) {
+        ta.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                e.preventDefault();
+                examForm.requestSubmit();
+            }
+        });
+    });
+
+    // Submit spinner + disable double-submit
+    examForm.addEventListener('submit', function() {
+        const btn = examForm.querySelector('button[type="submit"]');
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = 'Submitting…';
+        }
+    });
 
     // anti-cheat: swap question on tab switch, submit on 3 warnings
     initAntiCheat('examForm', {{ exam.id }});

@@ -609,7 +609,8 @@ h1, h2, h3, h4, h5, h6 { color: var(--text); }
 .question-number { font-weight: 700; color: var(--accent-dark); }
 .question-marks { color: var(--text-muted); font-size: 0.85rem; font-weight: 500; }
 .question-text { margin-bottom: 16px; line-height: 1.6; font-size: 1.1rem; }
-.exam-submit { text-align: center; margin-top: 32px; }
+.exam-submit { text-align: center; margin-top: 32px; display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+.submit-hint { display: block; margin-top: 6px; font-size: 0.78rem; color: var(--text-muted); }
 
 /* ===== Anti-cheat Overlay ===== */
 .cheat-overlay {

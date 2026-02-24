@@ -24,7 +24,7 @@ class User(UserMixin, db.Model):
 class Subject(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
-    icon = db.Column(db.String(10), default='📚')
+    icon = db.Column(db.String(10), default='--')
     questions = db.relationship('Question', backref='subject', lazy=True)
 
 

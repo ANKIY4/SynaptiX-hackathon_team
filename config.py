@@ -12,4 +12,4 @@ class Config:
     OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '')
     QUESTIONS_PER_EXAM = 7
     XP_PER_EXAM = 300
-    EXAM_DURATION_MINUTES = 20
+    EXAM_DURATION_MINUTES = 10

@@ -9,7 +9,7 @@ dashboard = Blueprint('dashboard', __name__)
 @dashboard.route('/dashboard')
 @login_required
 def index():
-    exams = Exam.query.filter_by(user_id=current_user.id, is_completed=True).order_by(Exam.completed_at.desc()).all()
+    exams = Exam.query.filter_by(user_id=current_user.id, is_completed=True, is_cancelled=False).order_by(Exam.completed_at.desc()).all()
     total_exams = len(exams)
     avg_score = 0
     if total_exams > 0:

@@ -1,6 +1,6 @@
 /**
  * Vision-based Anti-Cheat Proctoring System
- * - MediaPipe Face Mesh: head pose & eye gaze detection
+ * - MediaPipe Face Mesh: head pose and eye gaze detection
  * - TensorFlow.js COCO-SSD: phone detection
  */
 
@@ -12,7 +12,7 @@ class VisionAntiCheat {
         this.subjectName = (options.subjectName || '').toLowerCase();
 
         // Thresholds (seconds)
-        this.HEAD_AWAY_LIMIT = 15;
+        this.HEAD_AWAY_LIMIT = 10;
         this.EYE_AWAY_LIMIT = this.subjectName === 'mathematics' ? 90 : 30;
         this.PHONE_CONFIDENCE = 0.45;
         this.COCO_INTERVAL = 2000;
@@ -44,12 +44,12 @@ class VisionAntiCheat {
             await this._initCamera();
             await this._loadModels();
             this.modelsReady = true;
-            this._setStatus('active', '🟢 Proctoring Active');
+            this._setStatus('active', 'Proctoring Active');
             this.lastTick = performance.now();
             this._loop();
         } catch (err) {
             console.error('[VisionAC]', err);
-            this._setStatus('error', '⚠️ Camera required for exam');
+            this._setStatus('error', 'Camera required for exam');
         }
     }
 
@@ -73,11 +73,11 @@ class VisionAntiCheat {
             </div>
             <div class="proctor-timers" id="proctorTimers">
                 <div class="proctor-timer" id="ptHead" style="display:none">
-                    👤 Head&nbsp;<span id="ptHeadVal">0</span>/${this.HEAD_AWAY_LIMIT}s
+                    Head&nbsp;<span id="ptHeadVal">0</span>/${this.HEAD_AWAY_LIMIT}s
                     <div class="proctor-timer-bar"><div class="proctor-timer-fill" id="ptHeadBar"></div></div>
                 </div>
                 <div class="proctor-timer" id="ptEye" style="display:none">
-                    👁️ Eyes&nbsp;<span id="ptEyeVal">0</span>/${this.EYE_AWAY_LIMIT}s
+                    Eyes&nbsp;<span id="ptEyeVal">0</span>/${this.EYE_AWAY_LIMIT}s
                     <div class="proctor-timer-bar"><div class="proctor-timer-fill" id="ptEyeBar"></div></div>
                 </div>
             </div>`;
@@ -98,7 +98,7 @@ class VisionAntiCheat {
 
     /* ───────── Models ───────── */
     async _loadModels() {
-        this._setStatus('loading', '⏳ Loading AI models…');
+        this._setStatus('loading', 'Loading AI models…');
 
         // Face Mesh
         if (window.FaceMesh) {
@@ -209,7 +209,7 @@ class VisionAntiCheat {
             if (hVal) hVal.textContent = Math.floor(this.headAwayTime);
             if (hBar) hBar.style.width = Math.min(100, (this.headAwayTime / this.HEAD_AWAY_LIMIT) * 100) + '%';
             if (this.headAwayTime >= this.HEAD_AWAY_LIMIT) {
-                this._cancel('Looked away from camera for more than 15 seconds');
+                this._cancel('Looked away from camera for more than 10 seconds');
                 return;
             }
         } else {
@@ -236,10 +236,10 @@ class VisionAntiCheat {
         }
 
         // Status label
-        if (!this.facePresent) this._setStatus('warn', '⚠️ Face not visible');
-        else if (!this.headOk) this._setStatus('warn', '⚠️ Look at the screen');
-        else if (!this.eyesOk) this._setStatus('caution', '👁️ Eyes wandering');
-        else this._setStatus('active', '🟢 Proctoring Active');
+        if (!this.facePresent) this._setStatus('warn', 'Face not visible');
+        else if (!this.headOk) this._setStatus('warn', 'Look at the screen');
+        else if (!this.eyesOk) this._setStatus('caution', 'Eyes wandering');
+        else this._setStatus('active', 'Proctoring Active');
     }
 
     /* ───────── Status badge ───────── */
@@ -254,7 +254,7 @@ class VisionAntiCheat {
     async _cancel(reason) {
         if (this.cancelled) return;
         this.cancelled = true;
-        this._setStatus('cancelled', '🔴 Exam Cancelled');
+        this._setStatus('cancelled', 'Exam Cancelled');
         this.destroy();
 
         // Overlay
@@ -262,7 +262,7 @@ class VisionAntiCheat {
         ov.className = 'vision-cancel-overlay';
         ov.innerHTML = `
             <div class="vision-cancel-modal">
-                <div class="vision-cancel-icon">🚫</div>
+                <div class="vision-cancel-icon">X</div>
                 <h2>Exam Cancelled</h2>
                 <p class="vision-cancel-reason">${this._escHtml(reason)}</p>
                 <p class="vision-cancel-sub">The anti-cheat proctoring system detected a violation.</p>

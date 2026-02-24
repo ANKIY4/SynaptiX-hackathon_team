@@ -3,7 +3,7 @@ from config import Config
 from extensions import db, login_manager, csrf
 from models import User, Subject
 
-#main application factory(this is where we will shineeeeee🫣)
+#main application factory
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
@@ -32,12 +32,12 @@ def create_app():
 def seed_data():
     if Subject.query.count() == 0:
         subjects = [
-            Subject(name='Mathematics', icon='🔢'),
-            Subject(name='Science', icon='🔬'),
-            Subject(name='English', icon='📖'),
-            Subject(name='Nepali', icon='🇮'),
-            Subject(name='Social Science', icon='🌍'),
-            Subject(name='Computer Science', icon='💻'),
+            Subject(name='Mathematics', icon='M'),
+            Subject(name='Science', icon='S'),
+            Subject(name='English', icon='E'),
+            Subject(name='Nepali', icon='N'),
+            Subject(name='Social Science', icon='SS'),
+            Subject(name='Computer Science', icon='CS'),
         ]
         db.session.add_all(subjects)
         db.session.commit()

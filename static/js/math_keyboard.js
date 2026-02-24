@@ -91,7 +91,7 @@ class MathKeyboard {
         const header = document.createElement('div');
         header.className = 'math-kb-header';
         header.innerHTML = `
-            <span class="math-kb-title">⌨ Math Symbols</span>
+            <span class="math-kb-title">Math Symbols</span>
             <button type="button" class="math-kb-toggle" id="mathKbToggle" title="Toggle keyboard">▾</button>
         `;
         header.querySelector('#mathKbToggle').addEventListener('click', () => this._toggle());
