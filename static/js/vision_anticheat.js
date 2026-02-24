@@ -13,14 +13,22 @@ class VisionAntiCheat {
 
         // Thresholds (seconds)
         this.HEAD_AWAY_LIMIT = 10;
+        this.HEAD_OK_RESET_DELAY = 3; // head must be straight for 3s before timer resets
         this.EYE_AWAY_LIMIT = this.subjectName === 'mathematics' ? 90 : 30;
-        this.PHONE_CONFIDENCE = 0.45;
-        this.COCO_INTERVAL = 2000;
+        this.PHONE_CONFIDENCE = 0.30;
+        this.COCO_INTERVAL = 500;
+        this.MULTI_FACE_LIMIT = 3; // seconds before multi-face action
 
         // Accumulated time (resets when user looks back)
         this.headAwayTime = 0;
+        this.headOkTime = 0; // how long head has been back to OK
         this.eyeAwayTime = 0;
         this.lastTick = 0;
+
+        // Multiple-face tracking
+        this.multipleFaces = false;
+        this.multipleFacesTime = 0;
+        this.multipleFacesWarned = false;
 
         // Detection flags
         this.facePresent = false;
@@ -34,6 +42,7 @@ class VisionAntiCheat {
         this.faceMesh = null;
         this.cocoModel = null;
         this.cocoLastRun = 0;
+        this.cocoRunning = false;
         this.animFrameId = null;
     }
 
@@ -80,6 +89,10 @@ class VisionAntiCheat {
                     Eyes&nbsp;<span id="ptEyeVal">0</span>/${this.EYE_AWAY_LIMIT}s
                     <div class="proctor-timer-bar"><div class="proctor-timer-fill" id="ptEyeBar"></div></div>
                 </div>
+                <div class="proctor-timer" id="ptMulti" style="display:none">
+                    People&nbsp;<span id="ptMultiVal">0</span>/${this.MULTI_FACE_LIMIT}s
+                    <div class="proctor-timer-bar"><div class="proctor-timer-fill" id="ptMultiBar"></div></div>
+                </div>
             </div>`;
         const target = document.querySelector('.exam-header');
         if (target) target.parentNode.insertBefore(wrap, target);
@@ -90,7 +103,7 @@ class VisionAntiCheat {
     /* ───────── Camera ───────── */
     async _initCamera() {
         const stream = await navigator.mediaDevices.getUserMedia({
-            video: { width: 320, height: 240, facingMode: 'user' }, audio: false
+            video: { width: 640, height: 480, facingMode: 'user' }, audio: false
         });
         this.video.srcObject = stream;
         await this.video.play();
@@ -106,7 +119,7 @@ class VisionAntiCheat {
                 locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4/${f}`
             });
             this.faceMesh.setOptions({
-                maxNumFaces: 1,
+                maxNumFaces: 2,
                 refineLandmarks: true,
                 minDetectionConfidence: 0.5,
                 minTrackingConfidence: 0.5
@@ -119,7 +132,7 @@ class VisionAntiCheat {
 
         // COCO-SSD (phone detection)
         if (window.cocoSsd) {
-            this.cocoModel = await window.cocoSsd.load({ base: 'lite_mobilenet_v2' });
+            this.cocoModel = await window.cocoSsd.load({ base: 'mobilenet_v2' });
         }
     }
 
@@ -135,14 +148,16 @@ class VisionAntiCheat {
             this.faceMesh.send({ image: this.video }).catch(() => {});
         }
 
-        // Phone detection (throttled)
-        if (this.cocoModel && this.video.readyState >= 2 && (now - this.cocoLastRun) > this.COCO_INTERVAL) {
+        // Phone detection (throttled, non-overlapping)
+        if (this.cocoModel && !this.cocoRunning && this.video.readyState >= 2 && (now - this.cocoLastRun) > this.COCO_INTERVAL) {
             this.cocoLastRun = now;
+            this.cocoRunning = true;
             this.cocoModel.detect(this.video).then(preds => {
+                this.cocoRunning = false;
                 if (this.cancelled) return;
                 const phone = preds.find(p => p.class === 'cell phone' && p.score >= this.PHONE_CONFIDENCE);
                 if (phone) this._cancel('Phone detected in camera view');
-            }).catch(() => {});
+            }).catch(() => { this.cocoRunning = false; });
         }
 
         this._tick(dt);
@@ -155,9 +170,11 @@ class VisionAntiCheat {
             this.facePresent = false;
             this.headOk = false;
             this.eyesOk = false;
+            this.multipleFaces = false;
             return;
         }
         this.facePresent = true;
+        this.multipleFaces = results.multiFaceLandmarks.length > 1;
         const lm = results.multiFaceLandmarks[0];
         this.headOk = this._headStraight(lm);
         this.eyesOk = this._eyesStraight(lm);
@@ -201,10 +218,14 @@ class VisionAntiCheat {
         const eEl = document.getElementById('ptEye');
         const eVal = document.getElementById('ptEyeVal');
         const eBar = document.getElementById('ptEyeBar');
+        const mEl = document.getElementById('ptMulti');
+        const mVal = document.getElementById('ptMultiVal');
+        const mBar = document.getElementById('ptMultiBar');
 
-        // Head away
+        // Head away (with debounced reset — head must be OK for HEAD_OK_RESET_DELAY before timer clears)
         if (!this.facePresent || !this.headOk) {
             this.headAwayTime += dt;
+            this.headOkTime = 0;
             if (hEl) hEl.style.display = 'flex';
             if (hVal) hVal.textContent = Math.floor(this.headAwayTime);
             if (hBar) hBar.style.width = Math.min(100, (this.headAwayTime / this.HEAD_AWAY_LIMIT) * 100) + '%';
@@ -213,8 +234,17 @@ class VisionAntiCheat {
                 return;
             }
         } else {
-            this.headAwayTime = 0;
-            if (hEl) hEl.style.display = 'none';
+            this.headOkTime += dt;
+            if (this.headAwayTime > 0 && this.headOkTime < this.HEAD_OK_RESET_DELAY) {
+                // Recovery period: head is OK but not long enough — keep timer visible, don't accumulate
+                if (hEl) hEl.style.display = 'flex';
+                if (hVal) hVal.textContent = Math.floor(this.headAwayTime);
+                if (hBar) hBar.style.width = Math.min(100, (this.headAwayTime / this.HEAD_AWAY_LIMIT) * 100) + '%';
+            } else {
+                // Fully recovered
+                this.headAwayTime = 0;
+                if (hEl) hEl.style.display = 'none';
+            }
         }
 
         // Eye gaze away (only when face is present but eyes wander)
@@ -235,8 +265,30 @@ class VisionAntiCheat {
             if (eEl) eEl.style.display = 'none';
         }
 
+        // Multiple faces detection
+        if (this.multipleFaces) {
+            this.multipleFacesTime += dt;
+            if (mEl) mEl.style.display = 'flex';
+            if (mVal) mVal.textContent = Math.floor(this.multipleFacesTime);
+            if (mBar) mBar.style.width = Math.min(100, (this.multipleFacesTime / this.MULTI_FACE_LIMIT) * 100) + '%';
+            if (this.multipleFacesTime >= this.MULTI_FACE_LIMIT) {
+                if (!this.multipleFacesWarned) {
+                    this.multipleFacesWarned = true;
+                    this.multipleFacesTime = 0;
+                    this._showMultiFaceWarning();
+                } else {
+                    this._cancel('Multiple people detected — second violation');
+                    return;
+                }
+            }
+        } else {
+            this.multipleFacesTime = 0;
+            if (mEl) mEl.style.display = 'none';
+        }
+
         // Status label
-        if (!this.facePresent) this._setStatus('warn', 'Face not visible');
+        if (this.multipleFaces) this._setStatus('warn', 'Multiple faces detected');
+        else if (!this.facePresent) this._setStatus('warn', 'Face not visible');
         else if (!this.headOk) this._setStatus('warn', 'Look at the screen');
         else if (!this.eyesOk) this._setStatus('caution', 'Eyes wandering');
         else this._setStatus('active', 'Proctoring Active');
@@ -248,6 +300,25 @@ class VisionAntiCheat {
         const label = document.getElementById('proctorLabel');
         if (dot) { dot.className = 'proctor-dot'; dot.classList.add('dot-' + type); }
         if (label) label.textContent = text;
+    }
+
+    /* ───────── Multi-face warning overlay ───────── */
+    _showMultiFaceWarning() {
+        const ov = document.createElement('div');
+        ov.className = 'vision-cancel-overlay';
+        ov.id = 'multiFaceWarningOverlay';
+        ov.innerHTML = `
+            <div class="vision-cancel-modal">
+                <div class="vision-cancel-icon" style="color:#ff9800">⚠</div>
+                <h2>Warning: Multiple People Detected</h2>
+                <p class="vision-cancel-reason">Another person was detected in the camera for more than 3 seconds.</p>
+                <p class="vision-cancel-sub">This is your only warning. If this happens again, your exam will be cancelled.</p>
+                <button class="btn btn-primary" id="dismissMultiFaceBtn" style="margin-top:12px;padding:10px 32px;font-size:1.1rem;cursor:pointer;">I Understand</button>
+            </div>`;
+        document.body.appendChild(ov);
+        document.getElementById('dismissMultiFaceBtn').addEventListener('click', () => {
+            ov.remove();
+        });
     }
 
     /* ───────── Cancel exam ───────── */
