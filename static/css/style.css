@@ -899,3 +899,279 @@ h1, h2, h3, h4, h5, h6 { color: var(--text); }
     .nav-container { padding: 12px; }
     .main-content { padding: 16px 12px; }
 }
+
+/* ===== Vision Anti-Cheat Proctoring ===== */
+#proctorWrap {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    z-index: 1000;
+    width: 220px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+#proctorWrap video {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-bottom: 1px solid var(--border);
+    transform: scaleX(-1);
+}
+.proctor-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+.proctor-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #94a3b8;
+    flex-shrink: 0;
+}
+.proctor-dot.dot-active  { background: var(--success); box-shadow: 0 0 6px var(--success); }
+.proctor-dot.dot-loading { background: var(--warning); animation: pulse-dot 1s infinite; }
+.proctor-dot.dot-warn    { background: var(--warning); animation: pulse-dot .5s infinite; }
+.proctor-dot.dot-caution { background: #f59e0b; }
+.proctor-dot.dot-error   { background: var(--danger); }
+.proctor-dot.dot-cancelled { background: var(--danger); box-shadow: 0 0 8px var(--danger); }
+@keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+.proctor-timers {
+    padding: 0 10px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+.proctor-timer {
+    font-size: 0.7rem;
+    color: var(--danger);
+    font-weight: 600;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+}
+.proctor-timer-bar {
+    width: 100%;
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+}
+.proctor-timer-fill {
+    height: 100%;
+    background: var(--danger);
+    border-radius: 2px;
+    transition: width 0.3s linear;
+    width: 0%;
+}
+
+/* Cancel overlay */
+.vision-cancel-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    background: rgba(15, 23, 42, 0.92);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn .3s ease;
+}
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+.vision-cancel-modal {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 48px 40px;
+    text-align: center;
+    max-width: 440px;
+    box-shadow: 0 24px 48px rgba(0,0,0,.3);
+}
+.vision-cancel-icon { font-size: 3.5rem; margin-bottom: 12px; }
+.vision-cancel-modal h2 { color: var(--danger); margin-bottom: 12px; font-size: 1.5rem; }
+.vision-cancel-reason {
+    background: #fef2f2;
+    color: var(--danger);
+    padding: 10px 16px;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+.vision-cancel-sub { color: var(--text-muted); font-size: .9rem; margin-bottom: 8px; }
+.vision-cancel-redirect { color: var(--text-muted); font-size: .8rem; }
+
+/* Cancelled exam page */
+.cancelled-container { max-width: 520px; margin: 60px auto; text-align: center; }
+.cancelled-card {
+    background: var(--bg-card);
+    border: 2px solid var(--danger);
+    border-radius: var(--radius);
+    padding: 48px 36px;
+    box-shadow: var(--shadow);
+}
+.cancelled-icon { font-size: 4rem; margin-bottom: 16px; }
+.cancelled-card h1 { color: var(--danger); margin-bottom: 12px; }
+.cancelled-reason-box {
+    background: #fef2f2;
+    color: var(--danger);
+    padding: 12px 20px;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    margin: 16px 0;
+}
+.cancelled-info { color: var(--text-muted); font-size: .9rem; line-height: 1.6; margin-bottom: 24px; }
+
+@media (max-width: 640px) {
+    #proctorWrap { width: 150px; top: 70px; right: 10px; }
+}
+
+/* ===== Math Symbol Keyboard ===== */
+/* ── Math Symbol Keyboard ────────────────────────────────── */
+.math-kb {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: 0 2px 12px rgba(0,0,0,.08);
+    margin-top: 16px;
+    overflow: hidden;
+}
+.math-kb-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: #fff;
+    user-select: none;
+}
+.math-kb-title {
+    font-size: .85rem;
+    font-weight: 600;
+    letter-spacing: .3px;
+}
+.math-kb-toggle {
+    background: rgba(255,255,255,.15);
+    border: none;
+    color: #fff;
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: .85rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background .2s;
+}
+.math-kb-toggle:hover { background: rgba(255,255,255,.3); }
+
+/* Collapsible body */
+.math-kb-body {
+    padding: 12px 14px 14px;
+    max-height: 500px;
+    overflow: hidden;
+    transition: max-height .3s ease, padding .3s ease, opacity .2s ease;
+    opacity: 1;
+}
+.math-kb-body.collapsed {
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    opacity: 0;
+}
+
+/* Tab bar */
+.math-kb-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+.math-kb-tabs::-webkit-scrollbar { display: none; }
+.math-kb-tab {
+    flex-shrink: 0;
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    background: var(--bg);
+    color: var(--text-muted);
+    font-size: .78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .2s;
+    white-space: nowrap;
+    font-family: inherit;
+}
+.math-kb-tab:hover {
+    background: var(--accent-light);
+    color: var(--accent-dark);
+    border-color: var(--accent);
+}
+.math-kb-tab.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+    box-shadow: 0 2px 6px rgba(13,148,136,.3);
+}
+
+/* Key panes */
+.math-kb-pane { display: none; }
+.math-kb-pane.active { display: block; }
+
+/* Key grid */
+.math-kb-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
+    gap: 6px;
+}
+.math-kb-key {
+    height: 38px;
+    padding: 0 6px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all .15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Inter', system-ui, sans-serif;
+    user-select: none;
+}
+.math-kb-key--wide {
+    grid-column: span 2;
+    font-size: .82rem;
+    font-weight: 500;
+}
+.math-kb-key:hover {
+    background: var(--accent-light);
+    border-color: var(--accent);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(13,148,136,.15);
+}
+.math-kb-key:active,
+.math-kb-key--flash {
+    transform: translateY(0);
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent-dark);
+}
+
+@media (max-width: 640px) {
+    .math-kb-grid {
+        grid-template-columns: repeat(auto-fill, minmax(38px, 1fr));
+        gap: 5px;
+    }
+    .math-kb-key { height: 34px; font-size: .9rem; }
+    .math-kb-tab { padding: 5px 10px; font-size: .72rem; }
+}

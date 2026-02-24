@@ -48,6 +48,8 @@ class Exam(db.Model):
     score = db.Column(db.Float, default=0)
     total_marks = db.Column(db.Integer, default=0)
     is_completed = db.Column(db.Boolean, default=False)
+    is_cancelled = db.Column(db.Boolean, default=False)
+    cancelled_reason = db.Column(db.String(256), nullable=True)
     xp_earned = db.Column(db.Integer, default=0)
     answers = db.relationship('ExamAnswer', backref='exam', lazy=True)
     subject = db.relationship('Subject', backref='exams')

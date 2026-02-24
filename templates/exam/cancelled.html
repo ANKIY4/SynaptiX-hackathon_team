@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Exam Cancelled — MockMind{% endblock %}
+{% block content %}
+<div class="cancelled-container">
+    <div class="cancelled-card">
+        <h1>Exam Canceled</h1>
+        <p><strong>{{ subject.icon }} {{ subject.name }} — Grade {{ exam.grade }}</strong></p>
+
+        <div class="cancelled-reason-box">
+            {{ exam.cancelled_reason or 'Anti-cheat violation detected' }}
+        </div>
+
+        <p class="cancelled-info">
+            Your exam was automatically terminated by the AI proctoring system.
+            This happens when suspicious activity is detected through the webcam,
+            such as looking away from the screen, turning your head, or having a phone visible.
+            <br><br>
+            No XP has been awarded for this attempt. You may retake the exam.
+        </p>
+        <a href="{{ url_for('exam.select') }}" class="btn btn-primary btn-lg">Back to Exams</a>
+    </div>
+</div>
+{% endblock %}

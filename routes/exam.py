@@ -55,6 +55,8 @@ def take(exam_id):
         flash('Access denied.', 'danger')
         return redirect(url_for('exam.select'))
     if exam_obj.is_completed:
+        if exam_obj.is_cancelled:
+            return redirect(url_for('exam.cancelled', exam_id=exam_id))
         return redirect(url_for('exam.result', exam_id=exam_id))
 
     # check if timer expired
@@ -252,6 +254,39 @@ def _ai_evaluate(question_text, student_answer):
     content = resp.json()['choices'][0]['message']['content'].strip()
     data = json.loads(content)
     return data.get('eval', 'incorrect').lower()
+
+
+@exam.route('/exams/cancel/<int:exam_id>', methods=['POST'])
+@login_required
+def cancel(exam_id):
+    """Cancel exam due to anti-cheat violation (called from vision proctoring JS)."""
+    exam_obj = Exam.query.get_or_404(exam_id)
+    if exam_obj.user_id != current_user.id or exam_obj.is_completed or exam_obj.is_cancelled:
+        return jsonify({'status': 'error'}), 400
+
+    data = request.get_json(silent=True) or {}
+    reason = data.get('reason', 'Anti-cheat violation')
+
+    exam_obj.is_cancelled = True
+    exam_obj.is_completed = True
+    exam_obj.completed_at = datetime.utcnow()
+    exam_obj.cancelled_reason = reason
+    exam_obj.score = 0
+    exam_obj.xp_earned = 0
+    db.session.commit()
+
+    return jsonify({'status': 'cancelled'})
+
+
+@exam.route('/exams/cancelled/<int:exam_id>')
+@login_required
+def cancelled(exam_id):
+    exam_obj = Exam.query.get_or_404(exam_id)
+    if exam_obj.user_id != current_user.id:
+        flash('Access denied.', 'danger')
+        return redirect(url_for('exam.select'))
+    subject = db.session.get(Subject, exam_obj.subject_id)
+    return render_template('exam/cancelled.html', exam=exam_obj, subject=subject)
 
 
 @exam.route('/exams/finish/<int:exam_id>')

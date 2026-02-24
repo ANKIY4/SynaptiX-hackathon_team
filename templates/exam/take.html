@@ -1,7 +1,18 @@
 {% extends "base.html" %}
 {% block title %}Exam — MockMind{% endblock %}
 {% block head %}
+<!-- MediaPipe Face Mesh -->
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3/camera_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4/face_mesh.js" crossorigin="anonymous"></script>
+<!-- TensorFlow.js + COCO-SSD (phone detection) -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js"></script>
+<!-- Vision anti-cheat -->
+<script src="{{ url_for('static', filename='js/vision_anticheat.js') }}"></script>
 <script src="{{ url_for('static', filename='js/anticheat.js') }}"></script>
+{% if subject.name == 'Mathematics' %}
+<script src="{{ url_for('static', filename='js/math_keyboard.js') }}"></script>
+{% endif %}
 {% endblock %}
 {% block content %}
 <div class="exam-container">
@@ -117,5 +128,19 @@
 
     // anti-cheat: swap question on tab switch, submit on 3 warnings
     initAntiCheat('examForm', {{ exam.id }});
+
+    // Vision-based proctoring
+    const visionAC = new VisionAntiCheat({
+        examId: {{ exam.id }},
+        formId: 'examForm',
+        csrfToken: '{{ csrf_token() }}',
+        subjectName: '{{ subject.name }}'
+    });
+    visionAC.start();
+
+    // Math symbol keyboard (Mathematics only)
+    {% if subject.name == 'Mathematics' %}
+    new MathKeyboard('[name="student_answer"]');
+    {% endif %}
 </script>
 {% endblock %}

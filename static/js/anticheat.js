@@ -2,18 +2,25 @@
 let warningCount = 0;
 const MAX_WARNINGS = 3;
 let swapping = false;
+let submitting = false;
 
 function initAntiCheat(formId, examId) {
+    // Mark form submission so blur/visibility handlers don't fire
+    const form = document.getElementById(formId);
+    if (form) {
+        form.addEventListener('submit', function () { submitting = true; });
+    }
+
     // visibility change
     document.addEventListener('visibilitychange', function () {
-        if (document.hidden && !swapping) {
+        if (document.hidden && !swapping && !submitting) {
             handleTabSwitch(formId, examId);
         }
     });
 
     // alt-tab / clicking outside
     window.addEventListener('blur', function () {
-        if (!swapping) {
+        if (!swapping && !submitting) {
             handleTabSwitch(formId, examId);
         }
     });
