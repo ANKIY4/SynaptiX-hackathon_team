@@ -3,15 +3,13 @@
 {% block content %}
 <div class="result-container">
     <div class="result-header">
+        <span class="page-kicker">Exam Summary</span>
         <div class="result-badge">
             {% if exam.score / exam.total_marks >= 0.8 %}
-                <span class="badge-icon"></span>
                 <span class="badge-text">Excellent!</span>
             {% elif exam.score / exam.total_marks >= 0.5 %}
-                <span class="badge-icon"></span>
                 <span class="badge-text">Good Job!</span>
             {% else %}
-                <span class="badge-icon"></span>
                 <span class="badge-text">Keep Trying!</span>
             {% endif %}
         </div>

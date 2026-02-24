@@ -3,6 +3,7 @@
 {% block content %}
 <div class="select-container">
     <div class="select-header">
+        <span class="page-kicker">Start New Test</span>
         <h1>Choose Your Exam</h1>
         <p>Select a grade to see available subjects</p>
     </div>
@@ -26,18 +27,22 @@
 {% endblock %}
 {% block scripts %}
 <script>
-    let currentGrade = null;
-
     function selectGrade(grade) {
-        currentGrade = grade;
-        document.getElementById('gradeGrid').style.display = 'none';
-        document.getElementById('subjectSection').style.display = 'block';
+        const gradeGrid = document.getElementById('gradeGrid');
+        const subjectSection = document.getElementById('subjectSection');
+        const grid = document.getElementById('subjectGrid');
+
+        gradeGrid.style.display = 'none';
+        subjectSection.style.display = 'block';
         document.getElementById('selectedGrade').textContent = grade;
+        grid.innerHTML = '<p class="loading-state">Loading subjects...</p>';
 
         fetch(`/exams/subjects/${grade}`)
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok) throw new Error('Failed to fetch subjects');
+                return res.json();
+            })
             .then(subjects => {
-                const grid = document.getElementById('subjectGrid');
                 grid.innerHTML = '';
                 if (subjects.length === 0) {
                     grid.innerHTML = '<p class="empty-state">No subjects available for this grade yet.</p>';
@@ -53,12 +58,16 @@
                     `;
                     grid.appendChild(card);
                 });
+            })
+            .catch(() => {
+                grid.innerHTML = '<p class="error-state">Could not load subjects right now. Please try again.</p>';
             });
     }
 
     function backToGrades() {
         document.getElementById('gradeGrid').style.display = 'grid';
         document.getElementById('subjectSection').style.display = 'none';
+        document.getElementById('subjectGrid').innerHTML = '';
     }
 </script>
 {% endblock %}

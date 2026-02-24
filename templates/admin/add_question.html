@@ -3,7 +3,10 @@
 {% block content %}
 <div class="admin-container">
     <div class="admin-header">
-        <h1>{% if editing %}Edit Question{% else %}Add New Question{% endif %}</h1>
+        <div>
+            <span class="page-kicker">Admin Panel</span>
+            <h1>{% if editing %}Edit Question{% else %}Add New Question{% endif %}</h1>
+        </div>
     </div>
 
     <div class="admin-form-card">

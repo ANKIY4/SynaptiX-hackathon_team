@@ -4,7 +4,7 @@
 <div class="auth-container">
     <div class="auth-card">
         <div class="auth-header">
-            <span class="auth-icon"></span>
+            <span class="page-kicker">Welcome Back</span>
             <h1>Welcome Back</h1>
             <p>Log in to continue your journey</p>
         </div>
@@ -12,14 +12,14 @@
             {{ form.hidden_tag() }}
             <div class="form-group">
                 <label for="email">{{ form.email.label.text }}</label>
-                {{ form.email(class="form-input", placeholder="your@email.com") }}
+                {{ form.email(class="form-input", placeholder="your@email.com", autocomplete="email") }}
                 {% for error in form.email.errors %}
                     <span class="form-error">{{ error }}</span>
                 {% endfor %}
             </div>
             <div class="form-group">
                 <label for="password">{{ form.password.label.text }}</label>
-                {{ form.password(class="form-input", placeholder="Your password") }}
+                {{ form.password(class="form-input", placeholder="Your password", autocomplete="current-password") }}
                 {% for error in form.password.errors %}
                     <span class="form-error">{{ error }}</span>
                 {% endfor %}

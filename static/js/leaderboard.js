@@ -33,10 +33,15 @@ function refreshLeaderboard() {
                 `;
             });
 
+            if (table.dataset.snapshot === html) return;
+            table.dataset.snapshot = html;
+            table.classList.add('is-updating');
             table.innerHTML = html;
+            window.setTimeout(() => table.classList.remove('is-updating'), 180);
         })
         .catch(err => console.error('Leaderboard refresh error:', err));
 }
 
+refreshLeaderboard();
 // refresh every 5s
 setInterval(refreshLeaderboard, 5000);

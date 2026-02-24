@@ -3,7 +3,10 @@
 {% block content %}
 <div class="admin-container">
     <div class="admin-header">
-        <h1>Question Management</h1>
+        <div>
+            <span class="page-kicker">Admin Panel</span>
+            <h1>Question Management</h1>
+        </div>
         <a href="{{ url_for('admin.add_question') }}" class="btn btn-primary">+ Add Question</a>
     </div>
 
